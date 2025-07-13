@@ -278,11 +278,31 @@ pip install -e ".[torch,metrics]"
 
 Follow its README to prepare our released [datasets](https://huggingface.co/collections/CodeGoat24/unifiedreward-training-data-67c300d4fd5eff00fa7f1ede).
 
-2. Run the following command to train the SFT model.
+Concretely, you can run the download script to download the datasets and convert them to the format required by LLaMA-Factory.
+
+```bash
+# Assuming you are in the UnifiedReward directory
+cd dataset
+python download.py
+
+# And then you should download or unzip the images/videos in every dataset folder
+
+python convert_yaml_to_dataset_info.py # This will generate the dataset_info.json file from the train_data.yaml, which is required by LLaMA-Factory.
+python add_dataset_prefix.py # This will add the prefix to the image/video paths in the train_data.json file, and write the new train_data_abs.json file in the same folder.
+```
+
+1. Run the following command to train the SFT model.
 
 ```bash
 llamafactory-cli train examples/train_full/qwen2_5vl_full_sft.yaml
 ```
+
+2. LoRA SFT (optional): If your GPU memory is limited, you can use LoRA to train the SFT model. We provide an example configuration file for QLoRA training in `config/` directory. You can run the following command to train the LoRA SFT model.
+
+```bash
+llamafactory-cli train config/qwen2_5vl_lora_sft_lora.yaml
+```
+
 
 ### 2. Training based on LLaVA-Onevision
 

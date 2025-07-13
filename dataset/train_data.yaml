@@ -5,12 +5,12 @@ datasets:
   - json_path: dataset/LiFT-HRA/train_data.json
     sampling_strategy: all
     image_folder: dataset/LiFT-HRA
-  - json_path: dataset/LLaVA-critic/pairwise/train_data.json
+  - json_path: dataset/LLaVA-Critic-113k/pairwise/train_data.json
     sampling_strategy: all
-    image_folder: dataset/LLaVA-critic/pairwise
-  - json_path: dataset/LLaVA-critic/pointwise/train_data.json
-    sampling_strategy: random:25000      
-    image_folder: dataset/LLaVA-critic/pointwise
+    image_folder: dataset/LLaVA-Critic-113k/pairwise
+  - json_path: dataset/LLaVA-Critic-113k/pointwise/train_data.json
+    sampling_strategy: random:25000
+    image_folder: dataset/LLaVA-Critic-113k/pointwise
   - json_path: dataset/OIP/train_data.json
     sampling_strategy: random:25000
     image_folder: dataset/OIP
@@ -26,10 +26,10 @@ datasets:
   - json_path: dataset/EvalMuse/pointwise/train_data.json
     sampling_strategy: all
     image_folder: dataset/EvalMuse/images
-  - json_path: dataset/ShareGPTVideo/pairwise/train_data.json
+  - json_path: dataset/ShareGPTVideo-DPO/pairwise/train_data.json
     sampling_strategy: all
-    image_folder: dataset/ShareGPTVideo/videos
-  - json_path: dataset/ShareGPTVideo/pointwise/train_data.json
+    image_folder: dataset/ShareGPTVideo-DPO/videos
+  - json_path: dataset/ShareGPTVideo-DPO/pointwise/train_data.json
     sampling_strategy: all
-    image_folder: dataset/ShareGPTVideo/videos
+    image_folder: dataset/ShareGPTVideo-DPO/videos
 
