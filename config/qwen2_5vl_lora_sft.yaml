@@ -33,7 +33,7 @@ dataloader_num_workers: 4
 ### output
 output_dir: saves/Qwen2.5-VL-3B-Instruct/lora/sft
 logging_steps: 1
-save_steps: 50
+save_steps: 100
 plot_loss: true
 overwrite_output_dir: true
 save_only_model: false
