@@ -1,0 +1,102 @@
+{
+  "ur_dataset_hpd": {
+    "file_name": "HPD/train_data_abs.json",
+    "formatting": "sharegpt",
+    "columns": {
+      "messages": "conversations",
+      "images": "images"
+    }
+  },
+  "ur_dataset_lift_hra": {
+    "file_name": "LiFT-HRA/train_data_abs.json",
+    "formatting": "sharegpt",
+    "columns": {
+      "messages": "conversations",
+      "images": "images"
+    }
+  },
+  "ur_dataset_llava_critic_113k_pairwise": {
+    "file_name": "LLaVA-Critic-113k/pairwise/train_data_abs.json",
+    "formatting": "sharegpt",
+    "columns": {
+      "messages": "conversations",
+      "chosen": "chosen",
+      "rejected": "rejected",
+      "images": "images"
+    }
+  },
+  "ur_dataset_llava_critic_113k_pointwise": {
+    "file_name": "LLaVA-Critic-113k/pointwise/train_data_abs.json",
+    "formatting": "sharegpt",
+    "columns": {
+      "messages": "conversations",
+      "images": "images"
+    },
+    "num_samples": 25000
+  },
+  "ur_dataset_oip": {
+    "file_name": "OIP/train_data_abs.json",
+    "formatting": "sharegpt",
+    "columns": {
+      "messages": "conversations",
+      "images": "images"
+    },
+    "num_samples": 25000
+  },
+  "ur_dataset_videofeedback": {
+    "file_name": "VideoFeedback/train_data_abs.json",
+    "formatting": "sharegpt",
+    "columns": {
+      "messages": "conversations",
+      "videos": "videos"
+    }
+  },
+  "ur_dataset_videodpo": {
+    "file_name": "VideoDPO/train_data_abs.json",
+    "formatting": "sharegpt",
+    "columns": {
+      "messages": "conversations",
+      "chosen": "chosen",
+      "rejected": "rejected",
+      "videos": "videos"
+    }
+  },
+  "ur_dataset_evalmuse_pairwise": {
+    "file_name": "EvalMuse/pairwise/train_data_abs.json",
+    "formatting": "sharegpt",
+    "columns": {
+      "messages": "conversations",
+      "chosen": "chosen",
+      "rejected": "rejected",
+      "images": "images"
+    }
+  },
+  "ur_dataset_evalmuse_pointwise": {
+    "file_name": "EvalMuse/pointwise/train_data_abs.json",
+    "formatting": "sharegpt",
+    "columns": {
+      "messages": "conversations",
+      "images": "images"
+    }
+  },
+  "ur_dataset_sharegptvideo_dpo_pairwise": {
+    "file_name": "ShareGPTVideo-DPO/pairwise/train_data_abs.json",
+    "formatting": "sharegpt",
+    "columns": {
+      "messages": "conversations",
+      "chosen": "chosen",
+      "rejected": "rejected",
+      "videos": "videos"
+    }
+  },
+  "ur_dataset_sharegptvideo_dpo_pointwise": {
+    "file_name": "ShareGPTVideo-DPO/pointwise/train_data_abs.json",
+    "formatting": "sharegpt",
+    "columns": {
+      "messages": "conversations",
+      "chosen": "chosen",
+      "rejected": "rejected",
+      "videos": "videos"
+    }
+  }
+}

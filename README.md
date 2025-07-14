@@ -266,6 +266,9 @@ python sglang_llava/sglang_inference.py
 ## 💻 Training UnifiedReward
 
 ### 1. Training based on Qwen2.5-VL-Instruct (Recommended)
+
+#### 1. Unified Reward Model Training Dataset Preparation
+
 We use [LLaMA-Factory](https://github.com/hiyouga/LLaMA-Factory) to train the SFT model.
 
 1. Clone the [LLaMA-Factory](https://github.com/hiyouga/LLaMA-Factory) repository and install the dependencies.
@@ -276,13 +279,39 @@ cd LLaMA-Factory
 pip install -e ".[torch,metrics]"
 ```
 
-Follow its README to prepare our released [datasets](https://huggingface.co/collections/CodeGoat24/unifiedreward-training-data-67c300d4fd5eff00fa7f1ede).
+2. Follow its README to prepare our released [datasets](https://huggingface.co/collections/CodeGoat24/unifiedreward-training-data-67c300d4fd5eff00fa7f1ede).
 
-2. Run the following command to train the SFT model.
+> Be careful that the code for downloading and converting the datasets is not reviewed by UnifiedReward team, so please use it at your own risk.
+
+Concretely, you can run the download script to download the datasets and convert them to the format required by LLaMA-Factory.
+
+```bash
+# Assuming you are in the UnifiedReward directory
+cd dataset
+python download.py
+
+# And then you should download or unzip the images/videos in every dataset folder
+
+python convert_yaml_to_dataset_info.py # This will generate the dataset_info.json file from the train_data.yaml, which is required by LLaMA-Factory.
+python add_dataset_prefix.py # This will add the prefix to the image/video paths in the train_data.json file, and write the new train_data_abs.json file in the same folder.
+```
+
+#### 1.2 Training based on Qwen2.5-VL-Instruct
+
+> The demo training only conducts experiments on 4 datasets ur_dataset_hpd, ur_dataset_llava_critic_113k_pairwise, ur_dataset_llava_critic_113k_pointwise, ur_dataset_oip.
+
+1. Run the following command to train the SFT model.
 
 ```bash
 llamafactory-cli train examples/train_full/qwen2_5vl_full_sft.yaml
 ```
+
+2. LoRA SFT (optional): If your GPU memory is limited, you can use LoRA to train the SFT model. We provide an example configuration file for QLoRA training in `config/` directory. You can run the following command to train the LoRA SFT model.
+
+```bash
+llamafactory-cli train config/qwen2_5vl_lora_sft.yaml
+```
+
 
 ### 2. Training based on LLaVA-Onevision
 
