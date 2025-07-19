@@ -268,6 +268,15 @@ python sglang_llava/sglang_inference.py
 ### 1. Training based on Qwen2.5-VL-Instruct (Recommended)
 We use [LLaMA-Factory](https://github.com/hiyouga/LLaMA-Factory) to train the SFT model.
 
+🚨Unstable behaviors in `dataset.map()` function:
+When trying to train UnifiedReward on mixed image and video datasets, `TypeError: Couldn't cast array of type list<item: string> to null` may occur in the `dataset.map()` function. This is a known bug, and you can refer to https://github.com/hiyouga/LLaMA-Factory/issues/5613 and https://github.com/huggingface/datasets/issues/7222.
+
+There are 3 ways to avoid this:
+
+1. Tokenize video datasets and image datasets separately and cache them.
+2. Set preprocessing batch to 1.
+3. Transform a single video into multiple images.
+
 **Full-Tuning**
 
 1. Clone the [LLaMA-Factory](https://github.com/hiyouga/LLaMA-Factory) repository and install the dependencies.
