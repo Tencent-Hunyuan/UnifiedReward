@@ -6,13 +6,13 @@ datasets:
     sampling_strategy: all
     image_folder: dataset/LiFT-HRA
   - json_path: dataset/LLaVA-critic/pairwise/train_data.json
-    sampling_strategy: all
+    sampling_strategy: random:25000
     image_folder: dataset/LLaVA-critic/pairwise
   - json_path: dataset/LLaVA-critic/pointwise/train_data.json
     sampling_strategy: random:25000      
     image_folder: dataset/LLaVA-critic/pointwise
   - json_path: dataset/OIP/train_data.json
-    sampling_strategy: random:25000
+    sampling_strategy: all
     image_folder: dataset/OIP
   - json_path: dataset/VideoFeedback/train_data.json
     sampling_strategy: all

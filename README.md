@@ -268,6 +268,17 @@ python sglang_llava/sglang_inference.py
 ### 1. Training based on Qwen2.5-VL-Instruct (Recommended)
 We use [LLaMA-Factory](https://github.com/hiyouga/LLaMA-Factory) to train the SFT model.
 
+🚨Unstable behaviors in `dataset.map()` function:
+When trying to train UnifiedReward on mixed image and video datasets, `TypeError: Couldn't cast array of type list<item: string> to null` may occur in the `dataset.map()` function. This is a known bug, and you can refer to https://github.com/hiyouga/LLaMA-Factory/issues/5613 and https://github.com/huggingface/datasets/issues/7222.
+
+There are 3 ways to avoid this:
+
+1. Tokenize video datasets and image datasets separately and cache them.
+2. Set preprocessing batch to 1.
+3. Transform a single video into multiple images.
+
+**Full-Tuning**
+
 1. Clone the [LLaMA-Factory](https://github.com/hiyouga/LLaMA-Factory) repository and install the dependencies.
 
 ```bash
@@ -276,12 +287,34 @@ cd LLaMA-Factory
 pip install -e ".[torch,metrics]"
 ```
 
-Follow its README to prepare our released [datasets](https://huggingface.co/collections/CodeGoat24/unifiedreward-training-data-67c300d4fd5eff00fa7f1ede).
+2. Data Preprocessing.
 
-2. Run the following command to train the SFT model.
+```bash
+python dataset/preprocess.py
+```
+
+Then follow LLaMA-Factory's README and to prepare our released [datasets](https://huggingface.co/collections/CodeGoat24/unifiedreward-training-data-67c300d4fd5eff00fa7f1ede). You can refer to the example [dataset_info.json](https://github.com/Tencent-Hunyuan/UnifiedReward/blob/main/README.md).
+
+3. Run the following command to train the Full-Tuning SFT model.
 
 ```bash
 llamafactory-cli train examples/train_full/qwen2_5vl_full_sft.yaml
+```
+
+**LoRA**
+
+1. Same preparation in Full-Tuning.
+
+2. Run the following command to train the LoRA SFT model.
+
+```bash
+llamafactory-cli train lora/qwen2_5vl_lora_sft.yaml
+```
+
+3. Merge trained LoRA adapter to main model.
+
+```bash
+llamafactory-cli export lora/qwen2_5vl_lora_sft_merge.yaml
 ```
 
 ### 2. Training based on LLaVA-Onevision

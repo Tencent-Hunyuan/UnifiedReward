@@ -1,0 +1,193 @@
+from transformers import Qwen2_5_VLForConditionalGeneration, AutoProcessor
+from qwen_vl_utils import process_vision_info
+from datasets import load_dataset, load_from_disk
+from PIL import Image
+import torch
+import tqdm
+import os
+import random
+import json
+import re
+import csv
+
+def extract_final_score(output_text):
+    if 'Final Score:' in output_text:
+        output = output_text.split('Final Score:')[-1].strip()
+
+        output = re.findall(r"\d+", output)
+        if len(output) > 0:
+            output = int(output[0])
+        else:
+            output = 0
+    else:
+        output = re.findall(r"\d+", output_text)
+        if len(output) > 0:
+            output = int(output[0])
+        else:
+            output = 0
+    return output
+
+model_path = 'CodeGoat24/UnifiedReward-qwen-7b'
+score_eval = True
+model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
+    model_path, torch_dtype="auto", device_map={"": 'cuda:6'}
+)
+
+processor = AutoProcessor.from_pretrained(model_path)
+
+dataset = load_dataset("/home/data10T/orbinlee/GenAI-Bench", 'image_generation')['test']
+
+correct = 0
+correct_tie = 0
+num_all = 0
+num_all_tie = 0
+
+results = []
+
+for i in tqdm.trange(len(dataset)):
+    data = dataset[i]
+
+    if 'both' in data['vote_type'] or 'tie' in data['vote_type']:
+        num_all_tie += 1
+        num_all += 1
+        continue
+
+    if random.choices([True, False])[0]:
+        left_image = data['right_image'].resize((512, 512))
+        right_image = data['left_image'].resize((512, 512))
+        if 'left' in data['vote_type']:
+            data['vote_type'] = 'right'
+        elif 'right' in data['vote_type']:
+            data['vote_type'] = 'left'
+    else:
+        left_image = data['left_image'].resize((512, 512))
+        right_image = data['right_image'].resize((512, 512))
+
+    prompt = data['prompt']
+
+    if score_eval:
+        messages1 = [
+            {
+                "role": "user",
+                "content": [
+                    {"type": "image", "image": left_image},
+                    {
+                        "type": "text",
+                        "text": f'You are given a text caption and a generated image based on that caption. Your task is to evaluate this image based on two key criteria:\n1. Alignment with the Caption: Assess how well this image aligns with the provided caption. Consider the accuracy of depicted objects, their relationships, and attributes as described in the caption.\n2. Overall Image Quality: Examine the visual quality of this image, including clarity, detail preservation, color accuracy, and overall aesthetic appeal.\nFrom 0 to 100, how much do you rate for this image in terms of the overall image quality and alignment with the text caption?\nDo not dominant the rating by a single attribute such as image quality, but a overall rating on the above 2 factors.\nProvide a few lines for explanation and the rate number at last after \"Final Score:\".\nYour task is provided as follows:\nText Caption: [{prompt}]'
+                    },
+                ],
+            }
+        ]
+        messages2 = [
+            {
+                "role": "user",
+                "content": [
+                    {"type": "image", "image": right_image},
+                    {
+                        "type": "text",
+                        "text": f'You are given a text caption and a generated image based on that caption. Your task is to evaluate this image based on two key criteria:\n1. Alignment with the Caption: Assess how well this image aligns with the provided caption. Consider the accuracy of depicted objects, their relationships, and attributes as described in the caption.\n2. Overall Image Quality: Examine the visual quality of this image, including clarity, detail preservation, color accuracy, and overall aesthetic appeal.\nFrom 0 to 100, how much do you rate for this image in terms of the overall image quality and alignment with the text caption?\nDo not dominant the rating by a single attribute such as image quality, but a overall rating on the above 2 factors.\nProvide a few lines for explanation and the rate number at last after \"Final Score:\".\nYour task is provided as follows:\nText Caption: [{prompt}]'
+                    },
+                ],
+            }
+        ]
+
+        inputs = [messages1, messages2]
+        scores = [None, None]
+        for i, messages in enumerate(inputs):
+            text = processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+            image_inputs, video_inputs = process_vision_info(messages)
+            inputs = processor(
+                text=[text],
+                images=image_inputs,
+                videos=video_inputs,
+                padding=True,
+                return_tensors="pt"
+            ).to(model.device)
+
+
+            with torch.no_grad():
+                generated_ids = model.generate(**inputs, max_new_tokens=512)
+            generated_ids_trimmed = [
+                out_ids[len(in_ids):] for in_ids, out_ids in zip(inputs.input_ids, generated_ids)
+            ]
+            output_text = processor.batch_decode(
+                generated_ids_trimmed, skip_special_tokens=True, clean_up_tokenization_spaces=False
+            )[0]
+            scores[i] = extract_final_score(output_text)
+
+        if 'left' in data['vote_type']:
+            if scores[0] > scores[1]:
+                correct += 1
+            label = 0
+        elif 'right' in data['vote_type']:
+            if scores[0] < scores[1]:
+                correct += 1
+            label = 1
+        else:
+            num_all_tie += 1
+            if scores[0] == scores[1]:
+                correct += 1
+                correct_tie += 1
+            label = 2
+        num_all += 1
+        results.append([scores[0], scores[1], label])
+    else:
+        messages = [
+            {
+                "role": "user",
+                "content": [
+                    {"type": "image", "image": left_image},
+                    {"type": "image", "image": right_image},
+                    {
+                        "type": "text",
+                        "text": f"You are given a text caption and two generated images based on that caption. Your task is to evaluate and compare these images based on two key criteria:\n1. Alignment with the Caption: Assess how well each image aligns with the provided caption. Consider the accuracy of depicted objects, their relationships, and attributes as described in the caption.\n2. Overall Image Quality: Examine the visual quality of each image, including clarity, detail preservation, color accuracy, and overall aesthetic appeal.\nCompare both images using the above criteria and select the one that better aligns with the caption while exhibiting superior visual quality.\nProvide a clear conclusion such as \"Image 1 is better.\", \"Image 2 is better.\" and \"Both images are equally good.\"\nYour task is provided as follows:\nText Caption: [{prompt}]"
+                    },
+                ],
+            }
+        ]
+
+
+        text = processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+        image_inputs, video_inputs = process_vision_info(messages)
+        inputs = processor(
+            text=[text],
+            images=image_inputs,
+            videos=video_inputs,
+            padding=True,
+            return_tensors="pt"
+        ).to(model.device)
+
+
+        with torch.no_grad():
+            generated_ids = model.generate(**inputs, max_new_tokens=512)
+        generated_ids_trimmed = [
+            out_ids[len(in_ids):] for in_ids, out_ids in zip(inputs.input_ids, generated_ids)
+        ]
+        output_text = processor.batch_decode(
+            generated_ids_trimmed, skip_special_tokens=True, clean_up_tokenization_spaces=False
+        )[0]
+
+    
+        if 'left' in data['vote_type']:
+            answer = 'Image 1 is better'
+        elif 'right' in data['vote_type']:
+            answer = 'Image 2 is better'
+        else:
+            answer = 'Both images are equally good'
+            num_all_tie += 1
+
+        num_all += 1
+        if answer in output_text:
+            correct += 1
+            if data['vote_type'] == 'tie':
+                correct_tie += 1
+
+
+print(f"Acc.: {correct} / {num_all} = {correct / num_all:.4f}")
+print(f"Acc. w/o tie: ({correct} - {correct_tie}) / ({num_all} - {num_all_tie}) = {(correct - correct_tie) / (num_all - num_all_tie):.4f}")
+
+output_file = "pair_scores.csv"
+with open(output_file, "w", newline="") as csvfile:
+    writer = csv.writer(csvfile)
+    writer.writerow(["score_A", "score_B", "label"])  # 表头
+    writer.writerows(results)
