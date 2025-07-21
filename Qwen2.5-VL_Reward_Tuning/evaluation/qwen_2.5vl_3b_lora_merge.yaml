@@ -1,0 +1,11 @@
+### model
+model_name_or_path: /work/model/Qwen/Qwen2.5-VL-3B-Instruct
+adapter_name_or_path: /work/LLaMA-Factory/saves/qwen2_5vl_3b/lora/sft/ImageGen-CoT-Reward-5K/checkpoint-500 # 这里替换为自定义的LoRA检查点路径
+template: qwen2_vl
+trust_remote_code: true
+
+### export
+export_dir: /work/merged_model_lora_500 # 合并后模型的输出目录
+export_size: 2
+export_device: cpu
+export_legacy_format: false

@@ -1,0 +1,54 @@
+### model
+model_name_or_path: /work/model/Qwen/Qwen2.5-VL-3B-Instruct
+image_max_pixels: 262144
+video_max_pixels: 16384
+trust_remote_code: true
+
+### method
+stage: sft
+do_train: true
+finetuning_type: lora  # <-- 修改为 lora
+
+### lora (新增 LoRA 配置块)
+lora_rank: 8          # LoRA 的秩，可以从 8、16 或 32 开始尝试
+lora_alpha: 16        # 通常是 rank 的两倍
+lora_target: all      # 针对所有支持的层应用 LoRA，对于Qwen-VL是很好的起点
+lora_dropout: 0.05    # 可选，LoRA 层的 dropout
+
+### dataset
+dataset: ImageGen-CoT-Reward-5K
+media_dir: /work/LLaMA-Factory/data/CodeGoat24/ImageGen-CoT-Reward-5K
+template: qwen2_vl
+cutoff_len: 2048
+max_samples: 5540 
+overwrite_cache: true
+preprocessing_num_workers: 16
+dataloader_num_workers: 4
+
+### output
+output_dir: saves/qwen2_5vl_3b/lora/sft/ImageGen-CoT-Reward-5K # <-- 修改输出目录以区分
+logging_steps: 10
+save_steps: 500
+plot_loss: true
+overwrite_output_dir: true
+save_only_model: false
+report_to: tensorboard
+
+### train
+per_device_train_batch_size: 1 
+gradient_accumulation_steps: 8 
+learning_rate: 1.0e-4 # <-- LoRA 通常使用比全参微调更高的学习率，1.0e-4 是一个常用起始点
+num_train_epochs: 3.0
+lr_scheduler_type: cosine
+warmup_ratio: 0.1
+optim: adamw_8bit
+bf16: true 
+ddp_timeout: 180000000
+weight_decay: 0.01
+max_grad_norm: 1.0
+
+### eval
+val_size: 0.05
+per_device_eval_batch_size: 2
+eval_strategy: steps
+eval_steps: 200
